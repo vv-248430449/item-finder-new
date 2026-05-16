@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#2196F3">
+    <title>📦 物品位置管理器</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部栏 -->
+        <header class="app-header">
+            <h1>📦 物品位置管理器</h1>
+        </header>
+
+        <!-- 搜索栏 -->
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="🔍 搜索物品名称、位置..." autocomplete="off">
+            <button id="btnAdd" class="btn-primary">➕ 新增</button>
+        </div>
+
+        <!-- 分类筛选 -->
+        <div class="category-bar">
+            <select id="categoryFilter">
+                <option value="全部">📂 全部</option>
+                <option value="证件">📇 证件</option>
+                <option value="电子设备">📱 电子设备</option>
+                <option value="衣物">👔 衣物</option>
+                <option value="药品">💊 药品</option>
+                <option value="书籍">📚 书籍</option>
+                <option value="季节性物品">❄️ 季节性物品</option>
+                <option value="其他">📦 其他</option>
+            </select>
+        </div>
+
+        <!-- 视图切换 -->
+        <div class="view-tabs">
+            <button class="tab-btn active" data-view="all">📋 全部</button>
+            <button class="tab-btn" data-view="pinned">⭐ 置顶</button>
+            <button class="tab-btn" data-view="recent">👁 最近</button>
+            <button class="tab-btn" data-view="stats">📊 统计</button>
+            <button class="tab-btn" data-view="loaned">📤 借出</button>
+            <button class="tab-btn" data-view="reminders">⏰ 提醒</button>
+        </div>
+
+        <!-- 内容区域 -->
+        <main id="contentArea" class="content-area">
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <p>暂无物品，点击右上角添加吧！</p>
+            </div>
+        </main>
+
+        <!-- 状态栏 -->
+        <div class="status-bar" id="statusBar">就绪</div>
+    </div>
+
+    <!-- 新增/编辑弹窗 -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">新增物品</h2>
+                <button class="btn-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="itemId">
+                <div class="form-group">
+                    <label>物品名称 *</label>
+                    <input type="text" id="itemName" placeholder="例如：护照">
+                </div>
+                <div class="form-group">
+                    <label>位置 *</label>
+                    <input type="text" id="itemLocation" placeholder="例如：书房抽屉">
+                </div>
+                <div class="form-group">
+                    <label>分类</label>
+                    <select id="itemCategory">
+                        <option value="其他">其他</option>
+                        <option value="证件">证件</option>
+                        <option value="电子设备">电子设备</option>
+                        <option value="衣物">衣物</option>
+                        <option value="药品">药品</option>
+                        <option value="书籍">书籍</option>
+                        <option value="季节性物品">季节性物品</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>描述</label>
+                    <textarea id="itemDesc" rows="2" placeholder="可选：补充描述..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>照片</label>
+                    <input type="file" id="itemPhoto" accept="image/*" capture="environment">
+                    <div id="photoPreview" class="photo-preview"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn-primary" onclick="saveItem()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="detailTitle">物品详情</h2>
+                <button class="btn-close" onclick="closeDetailModal()">✕</button>
+            </div>
+            <div class="modal-body" id="detailBody">
+            </div>
+            <div class="modal-footer" id="detailFooter">
+            </div>
+        </div>
+    </div>
+
+    <!-- 照片大图弹窗 -->
+    <div id="photoModal" class="modal photo-modal" onclick="closePhotoModal()">
+        <div class="photo-modal-content" onclick="event.stopPropagation()">
+            <button class="btn-close photo-close" onclick="closePhotoModal()">✕</button>
+            <img id="photoLarge" src="" alt="照片">
+            <p id="photoInfo"></p>
+        </div>
+    </div>
+
+    <!-- 借出弹窗 -->
+    <div id="loanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📤 借出记录</h2>
+                <button class="btn-close" onclick="closeLoanModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="loanItemId">
+                <div class="form-group">
+                    <label>借给谁 *</label>
+                    <input type="text" id="loanTo" placeholder="例如：张三">
+                </div>
+                <div class="form-group">
+                    <label>预计归还日期</label>
+                    <input type="date" id="loanReturnDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeLoanModal()">取消</button>
+                <button class="btn-primary" onclick="saveLoan()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提醒弹窗 -->
+    <div id="reminderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⏰ 添加提醒</h2>
+                <button class="btn-close" onclick="closeReminderModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="reminderItemId">
+                <div class="form-group">
+                    <label>提醒类型</label>
+                    <select id="reminderType">
+                        <option value="过期提醒">过期提醒</option>
+                        <option value="电池更换">电池更换</option>
+                        <option value="维护提醒">维护提醒</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>提醒日期</label>
+                    <input type="date" id="reminderDate">
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea id="reminderNote" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeReminderModal()">取消</button>
+                <button class="btn-primary" onclick="saveReminder()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
