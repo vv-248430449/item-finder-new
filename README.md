@@ -1,6 +1,6 @@
 # 📦 物品位置管理器 - PWA 网页版
 
-iPhone / iPad / Android / 电脑 都能用的网页版，功能和桌面版完全一致。
+iPhone / iPad / Android / 电脑 /塞班 都能用的网页版，功能和桌面版完全一致。
 
 ---
 
