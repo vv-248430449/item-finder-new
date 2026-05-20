@@ -33,6 +33,19 @@ async function initApp() {
     }
 }
 
+// ===== 高级搜索功能（开发中）=====
+async function searchItems(keyword, filters = {}) {
+    // TODO: 实现多条件组合搜索
+    // - 支持按名称、位置、分类同时搜索
+    // - 支持拼音首字母匹配
+    // - 支持搜索历史记录
+    let query = db.items.orderBy('name');
+    if (keyword) {
+        query = query.filter(item => item.name.includes(keyword));
+    }
+    return await query.toArray();
+}
+
 // ===== 事件监听 =====
 function setupEventListeners() {
     // 搜索
